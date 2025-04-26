@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "bin": "./bin/index.js",
   "dependencies": {
+    "arg": "^5.0.2",
     "create-desktop-shortcuts": "^1.11.1",
     "node-notifier": "^10.0.1",
     "node-systray-v2": "github:Edgar-P-yan/node-systray-v2",
