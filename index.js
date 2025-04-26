@@ -3,6 +3,40 @@ import createDesktopShortcut from "create-desktop-shortcuts";
 import notifier from "node-notifier";
 import { fileURLToPath } from "url";
 import path from "path";
+import {SysTray} from 'node-systray-v2';
+
+// import image from "./profile-changer.ico";
+
+// import imageString from "./image.js";
+
+import image from "./image.js";
+
+
+const systray = new SysTray({
+  menu: {
+    // you should using .png icon in macOS/Linux, but .ico format in windows
+    icon: image,
+    title: "Profile updater",
+    tooltip: 'Profile updater',
+    items: [
+      {
+        title: 'Exit',
+        tooltip: 'exit kar oe',
+        checked: false,
+        enabled: true,
+      },
+    ],
+  },
+  debug: false,
+  copyDir: true, // copy go tray binary to outside directory, useful for packing tool like pkg.
+});
+
+systray.onClick((action) => {
+  if (action.seq_id === 0) {
+    systray.kill();
+    process.exit(0);
+  }
+})
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -11,10 +45,13 @@ const Time = 4 * 60 * 60 * 1000; // milliseconds
 
 const URL = "https://www.naukri.com/mnjuser/profile";
 
+ const isProduction = typeof process.pkg !== 'undefined';
+
+
 
 function startOnStartup() {
   let exePath = null;
-  if (process.env.NODE_ENV === "production") {
+  if (isProduction) {
     exePath = process.execPath;
   } else {
     exePath = __filename;
@@ -45,7 +82,7 @@ function sendNotification(title, message) {
   notifier.notify({
     title,
     message,
-    icon: undefined,
+    icon: "./profile-changer.ico",
     sound: true,
     wait: false,
     appID: "Profile Updater",

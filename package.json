@@ -13,6 +13,7 @@
   "dependencies": {
     "create-desktop-shortcuts": "^1.11.1",
     "node-notifier": "^10.0.1",
+    "node-systray-v2": "github:Edgar-P-yan/node-systray-v2",
     "puppeteer-core": "^24.7.2"
   }
 }
