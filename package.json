@@ -1,0 +1,18 @@
+{
+  "name": "profile-updater",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "create-desktop-shortcuts": "^1.11.1",
+    "node-notifier": "^10.0.1",
+    "puppeteer-core": "^24.7.2"
+  }
+}
