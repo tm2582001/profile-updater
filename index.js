@@ -8,8 +8,11 @@ import puppeteer from "puppeteer-core";
 import createDesktopShortcut from "create-desktop-shortcuts";
 import {WindowsToaster} from "node-notifier";
 import { SysTray } from "node-systray-v2";
-import image from "./image.js";
 import arg from "arg";
+import {hideConsole, showConsole} from "node-hide-console-window"
+
+
+import image from "./image.js";
 
 
 
@@ -87,7 +90,6 @@ function startOnStartup() {
 }
 
 function sendNotification(title, message) {
-  // Send notification
 
   const notifier = new WindowsToaster({
     withFallback: false, // Fallback to Growl or Balloons?
@@ -107,17 +109,22 @@ function sendNotification(title, message) {
 async function openBrowser(config) {
   const browser = await puppeteer.launch({
     executablePath: config.browserUrl,
-    headless: false,
+    headless: isProduction,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
   try {
     const page = await browser.newPage();
 
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    // await page.setViewport({ width: 1280, height: 800 });
+
     await page.goto(URL, {
       waitUntil: "networkidle0",
       timeout: 0,
     });
-
+    
+    // await page.waitForSelector('#usernameField', { visible: true });
     await page.type("#usernameField", config.email);
     await page.type("#passwordField", config.password);
     const loginButton = await page.$(
@@ -155,6 +162,7 @@ async function openBrowser(config) {
 
     return true;
   } catch (err) {
+    showConsole();
     console.log(err);
 
     return false;
@@ -318,6 +326,7 @@ async function main() {
   }
 
   addToSysTray();
+  hideConsole();
   // console.log("here");
 
   handleBrowserNotification(config);
