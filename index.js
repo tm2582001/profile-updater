@@ -161,7 +161,7 @@ async function openBrowser(config) {
         config.resumeHeadlines[Math.round(Math.random() *  (config.resumeHeadlines?.length -1))]
       );
       await page.click(`form[name="resumeHeadlineForm"] .btn-dark-ot`);
-      
+
       await page.waitForSelector('#lazyResumeHead .msg', { visible: true });
     }
 
@@ -172,7 +172,7 @@ async function openBrowser(config) {
 
     return false;
   } finally {
-    // browser.close();
+    browser.close();
   }
 }
 
