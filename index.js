@@ -4,15 +4,14 @@ import * as fsPromise from "fs/promises";
 
 import puppeteer from "puppeteer-core";
 import createDesktopShortcut from "create-desktop-shortcuts";
-import notifier from "node-notifier";
+import {WindowsToaster} from "node-notifier";
 import { fileURLToPath } from "url";
 import path from "path";
 import { SysTray } from "node-systray-v2";
 import image from "./image.js";
 import arg from "arg";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+
 
 // import config from "./config.json" with { type: "json" };
 const DEFAULT_UPDATE_TIME = 4 * 60 * 60 * 1000; // milliseconds
@@ -23,39 +22,45 @@ const URL = "https://www.naukri.com/mnjuser/profile";
 
 const isProduction = typeof process.pkg !== "undefined";
 
-const systray = new SysTray({
-  menu: {
-    // you should using .png icon in macOS/Linux, but .ico format in windows
-    icon: image,
-    title: "Profile updater",
-    tooltip: "Profile updater",
-    items: [
-      {
-        title: "Exit",
-        tooltip: "exit kar oe",
-        checked: false,
-        enabled: true,
-      },
-    ],
-  },
-  debug: false,
-  copyDir: true, // copy go tray binary to outside directory, useful for packing tool like pkg.
-});
+const __filename = isProduction? process.execPath:fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-systray.onClick((action) => {
-  if (action.seq_id === 0) {
-    systray.kill();
-    process.exit(0);
-  }
-});
+
+function addToSysTray(){
+  const systray = new SysTray({
+    menu: {
+      // you should using .png icon in macOS/Linux, but .ico format in windows
+      icon: image,
+      title: "Profile updater",
+      tooltip: "Profile updater",
+      items: [
+        {
+          title: "Exit",
+          tooltip: "exit kar oe",
+          checked: false,
+          enabled: true,
+        },
+      ],
+    },
+    debug: false,
+    copyDir: true, // copy go tray binary to outside directory, useful for packing tool like pkg.
+  });
+  
+  systray.onClick((action) => {
+    if (action.seq_id === 0) {
+      systray.kill();
+      process.exit(0);
+    }
+  });
+}
 
 function startOnStartup() {
-  let exePath = null;
-  if (isProduction) {
-    exePath = process.execPath;
-  } else {
-    exePath = __filename;
-  }
+  // let exePath = null;
+  // if (isProduction) {
+  //   exePath = ;
+  // } else {
+  //   exePath = __filename;
+  // }
 
   const startupFolder = path.join(
     process.env.APPDATA,
@@ -65,12 +70,13 @@ function startOnStartup() {
   const result = createDesktopShortcut({
     onlyCurrentOS: true,
     windows: {
-      filePath: exePath,
+      filePath: __filename,
       outputPath: startupFolder,
-      name: "My App Shortcut",
+      name: "profile updater Shortcut",
       comment: "Auto-created shortcut!",
       windowMode: "normal",
-      icon: exePath, // optional
+      icon: __filename, // optional
+      VBScriptPath:"./vendor/windows.vbs"
     },
   });
 
@@ -81,6 +87,12 @@ function startOnStartup() {
 
 function sendNotification(title, message) {
   // Send notification
+
+  const notifier = new WindowsToaster({
+    withFallback: false, // Fallback to Growl or Balloons?
+    customPath: "./vendor/snoreToast/snoretoast-x64.exe" // Relative/Absolute path if you want to use your fork of SnoreToast.exe
+  });
+
   notifier.notify({
     title,
     message,
@@ -94,7 +106,7 @@ function sendNotification(title, message) {
 async function openBrowser(config) {
   const browser = await puppeteer.launch({
     executablePath: config.browserUrl,
-    headless: isProduction,
+    headless: false,
   });
 
   try {
@@ -178,13 +190,21 @@ function usage() {
 }
 
 async function writeConfig(config) {
+
   await fsPromise.writeFile(
-    path.resolve(__dirname, "./config.json"),
+     path.join(__dirname,"./config.json"),
     JSON.stringify(config, null, 2)
   );
 }
 
+async function logError(err) {
+  await fsPromise.appendFileSync('error.log', `[${new Date().toISOString()}] ${err.stack || err}\n`);
+}
+addToSysTray();
+
 async function main() {
+  addToSysTray();
+
 
   let config = null;
 
@@ -196,13 +216,12 @@ async function main() {
       "--password": String,
       "--resumeUrl": String,
       "--resumeHeadlines": String,
-      "--startOnStartup": String,
+      "--startOnStartup": Boolean,
     });
 
     // console.log(args);
     if (args["--help"]) {
       usage();
-
       return;
     } else if (args["--init"]) {
       await writeConfig({
@@ -216,7 +235,7 @@ async function main() {
       return;
     }
 
-    config = await fsPromise.readFile("./config.json", "utf8").catch((err) => {
+    config = await fsPromise.readFile(path.join(__dirname, "./config.json"), "utf8").catch((err) => {
       console.log(`Ohh! configs not found please run this tool with --init flag
       you can also use --help flag to check all the flags`);
     });
@@ -276,7 +295,6 @@ async function main() {
     }
 
     if (args["--resumeHeadlines"]) {
-      // console.log(args["--email"]);
 
       if (config.resumeHeadlines) {
         config.resumeHeadlines.push(args["--resumeHeadlines"]);

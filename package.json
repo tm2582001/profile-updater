@@ -4,18 +4,37 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+
+    "build": "npm run build-1 && npm run build-2 && npm run copy-vendor",
+    "build-1": "rollup -c",
+    "build-2": "pkg dist/bundle.js -t node18-win-x64 --output build/profileUpdater.exe --public",
+    "copy-vendor": "cp -r vendor build/vendor",
+    "ncc": "npx @vercel/ncc build -o build/lib"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
-  "bin": "./bin/index.js",
+  "bin": "./index.js",
+  "pkg": {
+    "assets": [
+      "./profile-changer.ico",
+      "./profile-changer.png",
+      "./node_modules/create-desktop-shortcuts/src/**/*",
+      "./node_modules/node-notifier/*"
+    ]
+  },
   "dependencies": {
     "arg": "^5.0.2",
     "create-desktop-shortcuts": "^1.11.1",
     "node-notifier": "^10.0.1",
     "node-systray-v2": "github:Edgar-P-yan/node-systray-v2",
+    "pkg": "^5.8.1",
     "puppeteer-core": "^24.7.2"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.3",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "rollup": "^4.40.0"
   }
 }
