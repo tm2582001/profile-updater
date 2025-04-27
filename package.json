@@ -4,11 +4,13 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-
-    "build": "npm run build-1 && npm run build-2 && npm run copy-vendor",
+    "build": "npm run build-1 && npm run build-2 && npm run copy-vendor && npm run copy-image && npm run create-zip",
     "build-1": "rollup -c",
     "build-2": "pkg dist/bundle.js -t node18-win-x64 --output build/profileUpdater.exe --public",
     "copy-vendor": "cp -r vendor build/vendor",
+    "copy-image": "cp profile-changer.ico build",
+    "update-icon": "node build-scripts/set-icon.js",
+    "create-zip": "node build-scripts/create-zip.js",
     "ncc": "npx @vercel/ncc build -o build/lib"
   },
   "keywords": [],
@@ -19,9 +21,7 @@
   "pkg": {
     "assets": [
       "./profile-changer.ico",
-      "./profile-changer.png",
-      "./node_modules/create-desktop-shortcuts/src/**/*",
-      "./node_modules/node-notifier/*"
+      "./profile-changer.png"
     ]
   },
   "dependencies": {
@@ -35,6 +35,8 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
-    "rollup": "^4.40.0"
+    "adm-zip": "^0.5.16",
+    "rollup": "^4.40.0",
+    "rcedit": "^4.0.1"
   }
 }

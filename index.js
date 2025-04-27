@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 import * as fsPromise from "fs/promises";
+import { fileURLToPath } from "url";
+import path from "path";
 
 import puppeteer from "puppeteer-core";
 import createDesktopShortcut from "create-desktop-shortcuts";
 import {WindowsToaster} from "node-notifier";
-import { fileURLToPath } from "url";
-import path from "path";
 import { SysTray } from "node-systray-v2";
 import image from "./image.js";
 import arg from "arg";
@@ -25,6 +25,7 @@ const isProduction = typeof process.pkg !== "undefined";
 const __filename = isProduction? process.execPath:fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+console.log(fileURLToPath(import.meta.url))
 
 function addToSysTray(){
   const systray = new SysTray({
@@ -75,8 +76,8 @@ function startOnStartup() {
       name: "profile updater Shortcut",
       comment: "Auto-created shortcut!",
       windowMode: "normal",
-      icon: __filename, // optional
-      VBScriptPath:"./vendor/windows.vbs"
+      // icon: "./profile-changer.ico", // optional
+      VBScriptPath: "./vendor/windows.vbs"
     },
   });
 
@@ -90,13 +91,13 @@ function sendNotification(title, message) {
 
   const notifier = new WindowsToaster({
     withFallback: false, // Fallback to Growl or Balloons?
-    customPath: "./vendor/snoreToast/snoretoast-x64.exe" // Relative/Absolute path if you want to use your fork of SnoreToast.exe
+    customPath: path.resolve(__dirname, "./vendor/snoreToast/snoretoast-x64.exe") // Relative/Absolute path if you want to use your fork of SnoreToast.exe
   });
 
   notifier.notify({
     title,
     message,
-    icon: "./profile-changer.ico",
+    icon: path.resolve(__dirname, "./profile-changer.ico"),
     sound: true,
     wait: false,
     appID: "Profile Updater",
@@ -200,10 +201,9 @@ async function writeConfig(config) {
 async function logError(err) {
   await fsPromise.appendFileSync('error.log', `[${new Date().toISOString()}] ${err.stack || err}\n`);
 }
-addToSysTray();
 
 async function main() {
-  addToSysTray();
+  // addToSysTray();
 
 
   let config = null;
@@ -317,6 +317,7 @@ async function main() {
     usage();
   }
 
+  addToSysTray();
   // console.log("here");
 
   handleBrowserNotification(config);
