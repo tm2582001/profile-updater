@@ -130,14 +130,14 @@ async function openBrowser(config) {
     const loginButton = await page.$(
       ".waves-effect.waves-light.btn-large.btn-block.btn-bold.blue-btn.textTransform"
     );
-
+    
     await Promise.all([page.waitForNavigation(), loginButton.click()]);
-
+    
     await page.goto(URL, {
       waitUntil: "networkidle0",
       timeout: 0,
     });
-
+    
     //? updating resume
     const [fileChooser] = await Promise.all([
       page.waitForFileChooser(),
@@ -145,7 +145,10 @@ async function openBrowser(config) {
       // some button that triggers file selection
     ]);
     await fileChooser.accept([config.resumeUrl]);
+    
 
+    await page.waitForSelector('#lazyAttachCV .msg', { visible: true });
+    
     if (config.resumeHeadlines?.length) {
       // //? updating headline
       await page.click("#lazyResumeHead .edit.icon");
@@ -158,6 +161,8 @@ async function openBrowser(config) {
         config.resumeHeadlines[Math.round(Math.random() *  (config.resumeHeadlines?.length -1))]
       );
       await page.click(`form[name="resumeHeadlineForm"] .btn-dark-ot`);
+      
+      await page.waitForSelector('#lazyResumeHead .msg', { visible: true });
     }
 
     return true;
@@ -167,7 +172,7 @@ async function openBrowser(config) {
 
     return false;
   } finally {
-    browser.close();
+    // browser.close();
   }
 }
 
